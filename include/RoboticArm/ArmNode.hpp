@@ -23,7 +23,7 @@ public:
 private:
    ros::Subscriber ArmPosSubscriber;      //Last moment robotic arm pos
    ros::Subscriber ArmSetPointSubscriber; //From perception
-   ros::Publisher  ArmControlPubscriber;
+   ros::Publisher  ArmControlPublisher;
    void GetArmPosCallBack(const RoboticArm::state::ConstPtr& msg);
    void GetSetPointCallBack(const RoboticArm::setpoint::ConstPtr& msg);
    float SetPointAttitude[3]; //Roll Pitch Yaw

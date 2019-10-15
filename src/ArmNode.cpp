@@ -27,7 +27,7 @@ void RoboticArm::RoboticArmNode::InitSubcribers(ros::NodeHandle &n){
 }
 
 void RoboticArm::RoboticArmNode::InitPublishers(ros::NodeHandle &n){
-    this->ArmControlPubscriber = n.advertise<RoboticArm::controls>("controls",10);
+    this->ArmControlPublisher = n.advertise<RoboticArm::controls>("controls",10);
     std::thread pub(std::bind(&RoboticArmNode::Publish,this));
 
     pub.detach();
@@ -73,7 +73,7 @@ void RoboticArm::RoboticArmNode::Publish(){
         //}
         ctr.armCtr = CtrPos;
         ctr.timeCtr = CtrTime;
-        this->ArmControlPubscriber.publish( ctr );
+        this->ArmControlPublisher.publish( ctr );
         LoopRate.sleep();
         
     }
