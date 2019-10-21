@@ -48,7 +48,7 @@ void RoboticArm::RoboticArmNode::RoboticArmControlThread(){
             this->myArm[i].CtrTime( 500 );
         }
         
-        usleep(10000);
+        usleep(20000);
     }
         
 }
