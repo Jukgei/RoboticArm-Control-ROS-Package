@@ -7,6 +7,8 @@
 #include "RoboticArm/setpoint.h"
 #include "RoboticArm/state.h"
 
+#define PI 3.1415926
+
 namespace RoboticArm{
 
 class RoboticArmNode{
@@ -26,15 +28,18 @@ private:
    ros::Publisher  ArmControlPublisher;
    void GetArmPosCallBack(const RoboticArm::state::ConstPtr& msg);
    void GetSetPointCallBack(const RoboticArm::setpoint::ConstPtr& msg);
-   float SetPointAttitude[3]; //Roll Pitch Yaw
-   float SetPointPosition[3]; //X Y Z
+   float SetPointAttitude[3]; //Roll Pitch Yaw   front not used  1: yaw
+   float SetPointPosition[3]; //X Y Z front not used .    1: target h; 2: target l
+    
+   bool Ikinematics();
 
+   static const float L[];
 
 };
 
 }
 
-
+//const float RoboticArm::RoboticArmNode::L[6] = {0,11,12,13,14,17};
 
 
 #endif
