@@ -54,6 +54,7 @@ void RoboticArm::RoboticArmNode::InitArmControlThread(){
 }
 
 void RoboticArm::RoboticArmNode::RoboticArmControlThread(){
+    bool first_flag = true;
     while(ros::ok()){
         //Robotic Control Algorithm
         Ikinematics();
@@ -64,7 +65,11 @@ void RoboticArm::RoboticArmNode::RoboticArmControlThread(){
         //    this->myArm[i].CtrPos( 500 );
         //    this->myArm[i].CtrTime( 500 );
         //}
-        TrajUpdate = true;
+        if(first_flag)
+        {
+            first_flag = false;
+            TrajUpdate = true;
+        }
         ros::Duration(actionTime).sleep();    
     }
         
@@ -86,7 +91,7 @@ void RoboticArm::RoboticArmNode::Publish(){
                 //std::cout<<"The "<<i<<"th "<<"arm traj size is : "<<tmp.size()<<std::endl;
                 
                 this->myArm[i].CtrPos(CoderAngle(tmp[index],i));
-                this->myArm[i].CtrTime(200);
+                this->myArm[i].CtrTime(1);
             } 
 
         }
@@ -120,6 +125,7 @@ void RoboticArm::RoboticArmNode::GetArmPosCallBack(const RoboticArm::state::Cons
     {
         this->myArm[i].SetPos( pos[i] );
         armState[i] = DecoderAngle(this->myArm[i].GetPos(),i);
+        //std::cout<<"The "<<i<<"th "<<"angle is"<< DecoderAngle(pos[i],i)<<std::endl;
     }
      
     
@@ -159,8 +165,7 @@ bool RoboticArm::RoboticArmNode::SetDt(float deltaTime)
 bool RoboticArm::RoboticArmNode::Ikinematics(){
     float h = SetPointPosition[0];
     float l = SetPointPosition[1];
-    h = 0.0244; l = 0.4139;
-    std::cout<<L[1]<<std::endl;
+    h = 0.02828; l = 0.43488;
     float yaw = SetPointAttitude[0];
     yaw = 0; 
     
@@ -182,11 +187,11 @@ bool RoboticArm::RoboticArmNode::Ikinematics(){
         float q2 = 2 * atan(q2Numerator/q2Denominator);
         float q3Denominator = -L2DL3*L2DL3 + H * H  + bigL*bigL;
         float q3 = 2 *atan(rootDelta/q3Denominator);
-        float q4 = q3 -q2 + PI/2;
+        float q4 = q3 -q2 ;
         float q5 = SetPointAttitude[1];
         q5 = PI;
         float q1 = yaw;
-        std::cout<<"q2:"<<q2<<"   q3:"<<q3<<"    q4:"<<q4<<std::endl;
+        std::cout<<"q2: "<<CoderAngle(q2,2)<<"q2 rad: "<<q2<<"   q3:"<<CoderAngle(q3,3)<<"    q4:"<<CoderAngle(q4,4)<<" q4angle: "<<q4<<std::endl;
         armDesire[0] = 1;
         armDesire[1] = q1; armDesire[2] = q2; armDesire[3] = q3; armDesire[4] = q4;
         armDesire[5] = q5; 
@@ -249,6 +254,7 @@ std::vector<float> RoboticArm::RoboticArmNode::GetParam( float qEnd, float qStar
 
 uint16_t RoboticArm::RoboticArmNode::CoderAngle(float angle, int ID){
     uint16_t ans;
+    angle = angle /PI * 180;
     switch(ID)
     {
     case 1:
