@@ -83,6 +83,7 @@ void RoboticArm::RoboticArmNode::RoboticArmControlThread(){
 void RoboticArm::RoboticArmNode::Publish(){
     RoboticArm::controls ctr;
     ros::Rate LoopRate(publishFrequency); //50Hz
+    //ros::Rate LoopRate(1); //50Hz
     int index = 0;
     while(ros::ok()){
         
@@ -92,31 +93,37 @@ void RoboticArm::RoboticArmNode::Publish(){
         CtrTime.push_back(0xFFFF);  //placeholder
         if(TrajUpdate){
             for(int i = 1; i <= 5; i++){
-                std::vector<float> tmp = qTraj[i-1];
-                //std::cout<<"The "<<i<<"th "<<"arm traj size is : "<<tmp.size()<<std::endl;
+                std::vector<float> tmp;
+                {
+                    std::lock_guard<std::mutex> traj(varLock);
+                    tmp = qTraj[i-1];
+                }
                 
-                this->myArm[i].CtrPos(CoderAngle(tmp[index],i));
-                this->myArm[i].CtrTime((uint16_t)dt*1000);
+                //std::cout<<"The "<<i<<"th "<<"arm traj size is : "<<tmp.size()<<std::endl;
+                if(i == 1)
+                    std::cout<<"The robotic arm of "<< i <<" joint is "<< CoderAngle(tmp[index],i)<<" "<<"The rad of the value is "<< tmp[index]<<'.' <<"The index is "<< index << ' '<< std::endl;
             } 
-
+            //std::cout<<"send a frame"<<std::endl;
+            for(int i = 1; i <= 5; i++ ){
+                CtrPos.push_back(this->myArm[i].GetCtrPos());
+                CtrTime.push_back(this->myArm[i].GetCtrTime());
+            }
+            //DEBUG PRINT
+            //for(int i = 1; i <= 5; i++){
+            //    printf("Arm[%d] Ctr Pos: %d, Ctr Time:%d \n",i,CtrPos[i],CtrTime[i]);
+            //}
+            ctr.armCtr = CtrPos;
+            ctr.timeCtr = CtrTime;
+            //this->ArmControlPublisher.publish( ctr );
+            index++;
+            if(index >= trajSize){
+                std::cout<<"YOu are over"<<std::endl;
+                TrajUpdate = false;
+                index = 0;
+            }
         }
 
-        for(int i = 1; i <= 5; i++ ){
-            CtrPos.push_back(this->myArm[i].GetCtrPos());
-            CtrTime.push_back(this->myArm[i].GetCtrTime());
-        }
-        //DEBUG PRINT
-        //for(int i = 1; i <= 5; i++){
-        //    printf("Arm[%d] Ctr Pos: %d, Ctr Time:%d \n",i,CtrPos[i],CtrTime[i]);
-        //}
-        ctr.armCtr = CtrPos;
-        ctr.timeCtr = CtrTime;
-        this->ArmControlPublisher.publish( ctr );
-        index++;
-        if(index >= trajSize){
-            TrajUpdate = false;
-            index = 0;
-        }
+
         LoopRate.sleep();
         
     }
@@ -131,7 +138,7 @@ void RoboticArm::RoboticArmNode::GetArmPosCallBack(const RoboticArm::state::Cons
     {
         this->myArm[i].SetPos( pos[i] );
         armState[i] = DecoderAngle(this->myArm[i].GetPos(),i);
-        //std::cout<<"The "<<i<<"th "<<"angle is"<< DecoderAngle(pos[i],i)<<std::endl;
+        //std::cout<<"The "<<i<<"th "<<"angle is"<< DecoderAngle(pos[i],i)<<" value is "<<pos[i] <<"."<<std::endl;
     }
      
     
@@ -239,21 +246,25 @@ std::vector<float> RoboticArm::RoboticArmNode::GetParam( float qEnd, float qStar
         for(float j = 0; j < loopTime; j++)
             qTrajBuf.push_back(Planning(param,j*dt));
         //qTraj.push_back(qTrajBuf);
-        qTraj[i-1] = qTrajBuf;
+        {
+            std::lock_guard<std::mutex> traj(varLock);
+            qTraj[i-1] = qTrajBuf;
+        }
     }
-   // std::ofstream out;
-   //out.open("data.txt");
-   //for(int i = 0; i < trajSize; i ++)
-   //{
-   //    for(int j = 1; j <= 5; j++)
-   //    {
-   //        std::vector<float> tmp = qTraj[j-1];
-   //        out<<tmp[i]<<' ';
-   //    }
-   //    out<<'\n';
-   //}
-   //out.close();
-   //std::cout<<"Data record"<<std::endl;
+    std::ofstream out;
+   out.open("data.txt");
+   for(int i = 0; i < trajSize; i ++)
+   {
+       for(int j = 1; j <= 5; j++)
+       {
+           std::vector<float> tmp = qTraj[j-1];
+           out<<CoderAngle(tmp[i],j)<<' ';
+           //out<<tmp[i]<<' ';
+       }
+       out<<'\n';
+   }
+   out.close();
+   std::cout<<"Data record"<<std::endl;
 }
 
 

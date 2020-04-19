@@ -8,6 +8,8 @@
 #include "RoboticArm/controls.h"
 #include "RoboticArm/setpoint.h"
 #include "RoboticArm/state.h"
+#include <mutex>
+#include <functional>
 
 #define PI 3.1415926
 
@@ -33,7 +35,9 @@ private:
    void GetSetPointCallBack(const RoboticArm::setpoint::ConstPtr& msg);
    float SetPointAttitude[3]; //Roll Pitch Yaw   front not used  1: yaw 2: Roll
    float SetPointPosition[3]; //X Y Z front not used .    1: target h; 2: target l
-    
+   
+   std::mutex varLock;
+
    bool Ikinematics();
    std::vector<float>  GetParam( float qEnd, float qStart, float vEnd, float aEnd, float vStart, float aStart);
    float Planning(std::vector<float> &param, float t);
