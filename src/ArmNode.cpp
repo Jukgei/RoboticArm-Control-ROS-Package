@@ -14,14 +14,14 @@ RoboticArm::RoboticArmNode::RoboticArmNode(ros::NodeHandle &n){
     
    //armDesire{0,0,0,0,0,0};
 
-   actionTime = 4.0;
-   dt = 0.02;
-   publishFrequency = (int) 1/0.02;
-   trajSize = (int) actionTime /dt;
+   actionTime = 0.25;
+   dt = 0.005;
+   publishFrequency = (int) 1/dt;
+   trajSize = (int) (actionTime /dt);
    TrajUpdate = false;
    stateStable = false;
 
-   //std::cout<<trajSize<<std::endl;
+    std::cout<<trajSize<<std::endl;
    
    for(int i = 0; i < 5; i ++)
        qTraj.push_back(std::vector<float>(trajSize,0.0f));
@@ -98,10 +98,11 @@ void RoboticArm::RoboticArmNode::Publish(){
                     std::lock_guard<std::mutex> traj(varLock);
                     tmp = qTraj[i-1];
                 }
-                
+                this->myArm[i].CtrPos(CoderAngle(tmp[index],i));
+                this->myArm[i].CtrTime((uint16_t)dt*1000);
                 //std::cout<<"The "<<i<<"th "<<"arm traj size is : "<<tmp.size()<<std::endl;
-                if(i == 1)
-                    std::cout<<"The robotic arm of "<< i <<" joint is "<< CoderAngle(tmp[index],i)<<" "<<"The rad of the value is "<< tmp[index]<<'.' <<"The index is "<< index << ' '<< std::endl;
+                //if(i == 1)
+                //    std::cout<<"The robotic arm of "<< i <<" joint is "<< CoderAngle(tmp[index],i)<<" "<<"The rad of the value is "<< tmp[index]<<'.' <<"The index is "<< index << ' '<< std::endl;
             } 
             //std::cout<<"send a frame"<<std::endl;
             for(int i = 1; i <= 5; i++ ){
@@ -114,7 +115,7 @@ void RoboticArm::RoboticArmNode::Publish(){
             //}
             ctr.armCtr = CtrPos;
             ctr.timeCtr = CtrTime;
-            //this->ArmControlPublisher.publish( ctr );
+            this->ArmControlPublisher.publish( ctr );
             index++;
             if(index >= trajSize){
                 std::cout<<"YOu are over"<<std::endl;
