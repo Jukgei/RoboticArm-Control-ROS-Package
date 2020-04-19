@@ -50,6 +50,7 @@ private:
    int trajSize;  
    int publishFrequency;
    bool TrajUpdate;
+   bool stateStable;
 };
 
 }

@@ -19,6 +19,7 @@ RoboticArm::RoboticArmNode::RoboticArmNode(ros::NodeHandle &n){
    publishFrequency = (int) 1/0.02;
    trajSize = (int) actionTime /dt;
    TrajUpdate = false;
+   stateStable = false;
 
    //std::cout<<trajSize<<std::endl;
    
@@ -57,19 +58,23 @@ void RoboticArm::RoboticArmNode::RoboticArmControlThread(){
     bool first_flag = true;
     while(ros::ok()){
         //Robotic Control Algorithm
-        Ikinematics();
-       
-        TrajPlan();
+        if(stateStable){
+            Ikinematics();
+
+            TrajPlan();
+            if(first_flag)
+            {
+                first_flag = false;
+                TrajUpdate = true;
+            }
+        }
+        
         //test 
         //for(int i = 1; i <= 5; i++){
         //    this->myArm[i].CtrPos( 500 );
         //    this->myArm[i].CtrTime( 500 );
         //}
-        if(first_flag)
-        {
-            first_flag = false;
-            TrajUpdate = true;
-        }
+        
         ros::Duration(actionTime).sleep();    
     }
         
@@ -91,7 +96,7 @@ void RoboticArm::RoboticArmNode::Publish(){
                 //std::cout<<"The "<<i<<"th "<<"arm traj size is : "<<tmp.size()<<std::endl;
                 
                 this->myArm[i].CtrPos(CoderAngle(tmp[index],i));
-                this->myArm[i].CtrTime(1);
+                this->myArm[i].CtrTime((uint16_t)dt*1000);
             } 
 
         }
@@ -121,6 +126,7 @@ void RoboticArm::RoboticArmNode::Publish(){
 
 void RoboticArm::RoboticArmNode::GetArmPosCallBack(const RoboticArm::state::ConstPtr& msg){
     std::vector<uint16_t> pos = msg->arm;
+    stateStable = true;
     for(int i = 1; i <= 5; i++)
     {
         this->myArm[i].SetPos( pos[i] );
@@ -225,8 +231,7 @@ std::vector<float> RoboticArm::RoboticArmNode::GetParam( float qEnd, float qStar
     float qEnd[6] = {0};
 
     for(int i = 1; i <= 5; i++){
-        //qStart[i] = armState[i];
-        qStart[i] = 0;
+        qStart[i] = armState[i];
         qEnd[i] = armDesire[i];
         std::vector<float> param = GetParam(qEnd[i],qStart[i],0,0,0,0);
         std::vector<float> qTrajBuf;
