@@ -20,6 +20,7 @@ RoboticArm::RoboticArmNode::RoboticArmNode(ros::NodeHandle &n){
    trajSize = (int) (actionTime /dt);
    TrajUpdate = false;
    stateStable = false;
+   updateSetpoint = false; 
 
     std::cout<<trajSize<<std::endl;
    
@@ -58,7 +59,7 @@ void RoboticArm::RoboticArmNode::RoboticArmControlThread(){
     //bool first_flag = true;
     while(ros::ok()){
         //Robotic Control Algorithm
-        if(stateStable){
+        if(stateStable && (!TrajUpdate)&& updateSetpoint){
             Ikinematics();
 
             //TrajPlan();
@@ -67,6 +68,7 @@ void RoboticArm::RoboticArmNode::RoboticArmControlThread(){
             //    first_flag = false;
             //    TrajUpdate = true;
             //}
+            updateSetpoint = false;
             TrajUpdate = true;
         }
         
@@ -149,6 +151,7 @@ void RoboticArm::RoboticArmNode::GetSetPointCallBack(const RoboticArm::setpoint:
         this->SetPointAttitude[i] = attitude[i];
         this->SetPointPosition[i] = position[i];
     }
+    updateSetpoint = true;
     std::cout<<"Height is "<<position[0]<<'.'<<"Distance is " <<position[1]<<'.'<<std::endl;
     std::cout<<"Yaw is    "<<attitude[0]<<'.'<<"Roll     is " <<attitude[1]<<'.'<<std::endl;
 

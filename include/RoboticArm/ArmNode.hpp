@@ -55,6 +55,7 @@ private:
    int publishFrequency;
    bool TrajUpdate;
    bool stateStable;
+   bool updateSetpoint;
 };
 
 }
