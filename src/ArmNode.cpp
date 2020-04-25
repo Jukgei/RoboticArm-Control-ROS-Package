@@ -22,7 +22,7 @@ RoboticArm::RoboticArmNode::RoboticArmNode(ros::NodeHandle &n){
    stateStable = false;
    updateSetpoint = false;
 
-    std::cout<<trajSize<<std::endl;
+    //std::cout<<trajSize<<std::endl;
    
    for(int i = 0; i < 5; i ++)
        qTraj.push_back(std::vector<float>(trajSize,0.0f));
@@ -161,7 +161,7 @@ void RoboticArm::RoboticArmNode::GetSetPointCallBack(const RoboticArm::setpoint:
     }
     updateSetpoint = true;
     std::cout<<"Height is "<<position[0]<<'.'<<"Distance is " <<position[1]<<'.'<<std::endl;
-    std::cout<<"Yaw is    "<<attitude[0]<<'.'<<"Roll     is " <<attitude[1]<<'.'<<std::endl;
+    //std::cout<<"Yaw is    "<<attitude[0]<<'.'<<"Roll     is " <<attitude[1]<<'.'<<std::endl;
 
 }
 
@@ -208,8 +208,9 @@ bool RoboticArm::RoboticArmNode::Ikinematics(){
         float q4 = q3 -q2 ;
         float q5 = SetPointAttitude[1];
         //q5 = PI;
-        float q1 = yaw;
+        float q1 = yaw/180.0 * PI;
         std::cout<<"q2: "<<CoderAngle(q2,2)<<"q2 rad: "<<q2<<"   q3:"<<CoderAngle(q3,3)<<"    q4:"<<CoderAngle(q4,4)<<" q4angle: "<<q4<<std::endl;
+        std::cout<<"q1: "<<CoderAngle(q1,1)<<"q1 value is"<<q1<<std::endl;
         armDesire[0] = 1;
         armDesire[1] = q1; armDesire[2] = q2; armDesire[3] = q3; armDesire[4] = q4;
         armDesire[5] = q5; 
@@ -264,20 +265,20 @@ void RoboticArm::RoboticArmNode::TrajPlan() {
             qTraj[i-1] = qTrajBuf;
         }
     }
-    std::ofstream out;
-   out.open("data.txt");
-   for(int i = 0; i < trajSize; i ++)
-   {
-       for(int j = 1; j <= 5; j++)
-       {
-           std::vector<float> tmp = qTraj[j-1];
-           out<<CoderAngle(tmp[i],j)<<' ';
-           //out<<tmp[i]<<' ';
-       }
-       out<<'\n';
-   }
-   out.close();
-   std::cout<<"Data record"<<std::endl;
+   // std::ofstream out;
+   //out.open("data.txt");
+   //for(int i = 0; i < trajSize; i ++)
+   //{
+   //    for(int j = 1; j <= 5; j++)
+   //    {
+   //        std::vector<float> tmp = qTraj[j-1];
+   //        out<<CoderAngle(tmp[i],j)<<' ';
+   //        //out<<tmp[i]<<' ';
+   //    }
+   //    out<<'\n';
+   //}
+   //out.close();
+   //std::cout<<"Data record"<<std::endl;
 }
 
 
@@ -287,6 +288,7 @@ uint16_t RoboticArm::RoboticArmNode::CoderAngle(float angle, int ID){
     switch(ID)
     {
     case 1:
+        
         ans = (uint16_t)(500 + angle/0.24);
         break;
     case 2:

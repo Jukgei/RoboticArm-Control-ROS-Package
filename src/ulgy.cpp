@@ -200,7 +200,7 @@ bool RoboticArm::RoboticArmNode::Ikinematics(){
         float q4 = q3 -q2 ;
         float q5 = SetPointAttitude[1];
         //q5 = PI;
-        float q1 = yaw;
+        float q1 = yaw/180.0*PI;
         std::cout<<"q2: "<<CoderAngle(q2,2)<<"q2 rad: "<<q2<<"   q3:"<<CoderAngle(q3,3)<<"    q4:"<<CoderAngle(q4,4)<<" q4angle: "<<q4<<std::endl;
         armDesire[0] = 1;
         armDesire[1] = q1; armDesire[2] = q2; armDesire[3] = q3; armDesire[4] = q4;
