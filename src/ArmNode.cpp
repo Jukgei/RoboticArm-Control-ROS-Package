@@ -14,7 +14,7 @@ RoboticArm::RoboticArmNode::RoboticArmNode(ros::NodeHandle &n){
     
    //armDesire{0,0,0,0,0,0};
 
-   actionTime = 0.25;
+   actionTime = 0.55;
    dt = 0.005;
    publishFrequency = (int) 1/dt;
    trajSize = (int) (actionTime /dt);
@@ -214,6 +214,9 @@ bool RoboticArm::RoboticArmNode::Ikinematics(){
         armDesire[0] = 1;
         armDesire[1] = q1; armDesire[2] = q2; armDesire[3] = q3; armDesire[4] = q4;
         armDesire[5] = q5; 
+    }
+    if(SetPointAttitude[2] > 999){
+        armDesire[1] = 0; armDesire[2] = 1.59593; armDesire[3] = 1.49959; armDesire[4] = -1.49959;
     }
     return true; 
 }
